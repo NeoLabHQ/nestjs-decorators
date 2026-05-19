@@ -1,16 +1,16 @@
 {
-  "name": "nestjs-log-decorator",
+  "name": "nestjs-decorators",
   "version": "1.5.0",
-  "description": "Decorator that removes try catch boilerplate logging from NestJS service methods",
+  "description": "TypeScript decorators for NestJS: logging, error handling, and validation",
   "author": "Vlad Goncharov <vlad.goncharov@neolab.com>",
   "license": "AGPL-3.0",
-  "homepage": "https://github.com/NeoLabHQ/nestjs-log-decorator#readme",
+  "homepage": "https://github.com/NeoLabHQ/nestjs-decorators#readme",
   "repository": {
     "type": "git",
-    "url": "https://github.com/NeoLabHQ/nestjs-log-decorator"
+    "url": "https://github.com/NeoLabHQ/nestjs-decorators"
   },
   "bugs": {
-    "url": "https://github.com/NeoLabHQ/nestjs-log-decorator/issues"
+    "url": "https://github.com/NeoLabHQ/nestjs-decorators/issues"
   },
   "exports": {
     ".": "./dist/index.cjs",
@@ -34,13 +34,15 @@
     "cz": "git add . && cz"
   },
   "dependencies": {
-    "base-decorators": "^0.1.1"
+    "base-decorators": "^0.1.4"
   },
   "devDependencies": {
     "@semantic-release/git": "^10.0.1",
     "@types/node": "^25.0.3",
     "axios": "^1.13.2",
     "bumpp": "^10.3.2",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.15.1",
     "concurrently": "^9.2.1",
     "cz-conventional-changelog": "^3.3.0",
     "tsdown": "^0.18.1",
@@ -48,7 +50,13 @@
     "vitest": "^4.0.16"
   },
   "peerDependencies": {
-    "@nestjs/common": "*"
+    "@nestjs/common": "*",
+    "class-validator": ">=0.14.0"
+  },
+  "peerDependenciesMeta": {
+    "class-validator": {
+      "optional": true
+    }
   },
   "config": {
     "commitizen": {
@@ -62,6 +70,10 @@
     "nestjs",
     "typescript",
     "utility",
-    "logger"
+    "logger",
+    "catch",
+    "validate",
+    "validation",
+    "error-handling"
   ]
 }

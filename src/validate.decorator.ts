@@ -1,8 +1,8 @@
-import type { TypedMethodDecorator } from 'base-decorators'
 import type { ValidationError, ValidatorOptions } from 'class-validator'
 import { OnInvokeHook } from 'base-decorators'
 import { validate } from 'class-validator'
-import { createLogWrapper } from 'nestjs-log-decorator'
+import { createLogWrapper } from './LogWrapper'
+
 
 /**
  * Configuration for the Validate method decorator.
@@ -12,7 +12,7 @@ import { createLogWrapper } from 'nestjs-log-decorator'
  *                   May be sync or async.
  * @param message - Optional log message written when validation fails.
  */
-interface ValidateConfig<V extends unknown[] = unknown[]> {
+export interface ValidateConfig<V extends unknown[] = unknown[]> {
   validate: (...args: V) => void | Promise<void>
   message?: string
 }
@@ -26,7 +26,7 @@ interface ValidateConfig<V extends unknown[] = unknown[]> {
  * @param validatorOptions - Optional class-validator options (groups, whitelist, etc.).
  * @param message - Optional log message written when validation fails.
  */
-interface ValidateObjectConfig<V extends unknown[] = unknown[]> {
+export interface ValidateObjectConfig<V extends unknown[] = unknown[]> {
   extract: (...args: V) => object
   handleErrors: (args: V, errors: ValidationError[], messages: string[]) => void
   validatorOptions?: ValidatorOptions
@@ -61,8 +61,7 @@ interface ValidateObjectConfig<V extends unknown[] = unknown[]> {
  * }
  * ```
  */
-// eslint-disable-next-line ts/no-unnecessary-type-parameters
-function ValidateObject<T extends object = object, TArgs extends unknown[] = unknown[], TReturn extends Promise<unknown> = Promise<unknown>>(config: ValidateObjectConfig<TArgs>): TypedMethodDecorator<TArgs, TReturn> {
+export function ValidateObject<TArgs extends unknown[] = unknown[]>(config: ValidateObjectConfig<TArgs>): MethodDecorator {
   const validateConfig: ValidateConfig<TArgs> = {
     async validate(...args: TArgs) {
       const objectToValidate = config.extract(...args)
@@ -80,7 +79,7 @@ function ValidateObject<T extends object = object, TArgs extends unknown[] = unk
     validateConfig.message = config.message
   }
 
-  return Validate<T, TArgs, TReturn>(validateConfig)
+  return Validate<TArgs>(validateConfig)
 }
 
 /** Unique exclusion key for Validate decorators, isolating them from other Effect-based decorators. */
@@ -92,8 +91,11 @@ const VALIDATE_EXCLUSION_KEY: unique symbol = Symbol('validate')
  * The validate callback receives all method arguments and should throw
  * if validation fails. Supports both sync and async callbacks.
  *
- * Uses the `onInvoke` lifecycle hook from `base-decorators` for pre-execution validation
- * and `createLogWrapper` from `nestjs-log-decorator` for consistent logging.
+ * Wraps `descriptor.value` directly so async validation rejections propagate
+ * into the method's return-promise chain (unlike `OnInvokeHook`, which fires
+ * the callback fire-and-forget and would surface async throws as unhandled
+ * rejections). Uses `createLogWrapper` from `./LogWrapper` for consistent
+ * logging.
  *
  * @param config - Validation configuration with callback and optional log message
  * @returns A method decorator that wraps the target method with pre-validation
@@ -112,11 +114,10 @@ const VALIDATE_EXCLUSION_KEY: unique symbol = Symbol('validate')
  * }
  * ```
  */
-// eslint-disable-next-line ts/no-unnecessary-type-parameters
-function Validate<T extends object = object, TArgs extends unknown[] = unknown[], TReturn extends Promise<unknown> = Promise<unknown>>(config: ValidateConfig<TArgs>): TypedMethodDecorator<TArgs, TReturn> {
-  return OnInvokeHook<T, TArgs, Promise<unknown>>(async ({ target, className, propertyKey, args, argsObject }): Promise<void> => {
+export function Validate<TArgs extends unknown[] = unknown[]>(config: ValidateConfig<TArgs>): MethodDecorator {
+  return OnInvokeHook(async ({ target, className, propertyKey, args, argsObject }): Promise<void> => {
     try {
-      await config.validate(...args)
+      await config.validate(...(args as TArgs))
     }
     catch (error: unknown) {
       const logger = createLogWrapper(target, className, propertyKey as string, argsObject)
@@ -134,7 +135,7 @@ function Validate<T extends object = object, TArgs extends unknown[] = unknown[]
  * @param errors - Array of class-validator ValidationError instances
  * @returns Array of formatted error message strings
  */
-function formatValidationMessages(errors: ValidationError[]): string[] {
+export function formatValidationMessages(errors: ValidationError[]): string[] {
   return errors.map((validationError) => {
     const constraints = validationError.constraints
       ? Object.values(validationError.constraints)
@@ -143,6 +144,3 @@ function formatValidationMessages(errors: ValidationError[]): string[] {
     return `${validationError.property}: ${constraints.join(', ')}`
   })
 }
-
-export { Validate, ValidateObject }
-export type { ValidateConfig, ValidateObjectConfig }

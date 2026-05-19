@@ -1,11 +1,13 @@
 import { Logger } from '@nestjs/common'
-import { Catch } from '@/error-handling/catch.decorator'
+import { vi, describe, it, expect } from 'vitest'
+
+import { Catch } from '../src/catch.decorator'
 
 /** Silenced NestJS logger for test services that use the Catch decorator. */
 const silentLogger = new Logger('TestService')
-silentLogger.log = jest.fn()
-silentLogger.error = jest.fn()
-silentLogger.warn = jest.fn()
+silentLogger.log = vi.fn()
+silentLogger.error = vi.fn()
+silentLogger.warn = vi.fn()
 
 class CustomError extends Error {
   override name = 'CustomError'
@@ -22,7 +24,7 @@ class SubCustomError extends CustomError {
 describe('Catch decorator', () => {
   describe('with specific error type (errorType provided)', () => {
     it('should catch errors matching the specified type', async () => {
-      const handler = jest.fn()
+      const handler = vi.fn()
 
       class TestService {
         readonly logger = silentLogger
@@ -44,7 +46,7 @@ describe('Catch decorator', () => {
     })
 
     it('should catch subclass errors when parent class is specified', async () => {
-      const handler = jest.fn()
+      const handler = vi.fn()
 
       class TestService {
         readonly logger = silentLogger
@@ -66,7 +68,7 @@ describe('Catch decorator', () => {
     })
 
     it('should re-throw errors not matching the specified type', async () => {
-      const handler = jest.fn()
+      const handler = vi.fn()
 
       class TestService {
         readonly logger = silentLogger
@@ -84,7 +86,7 @@ describe('Catch decorator', () => {
     })
 
     it('should re-throw generic Error when specific type is expected', async () => {
-      const handler = jest.fn()
+      const handler = vi.fn()
 
       class TestService {
         readonly logger = silentLogger
@@ -104,7 +106,7 @@ describe('Catch decorator', () => {
 
   describe('catch-all (no errorType parameter)', () => {
     it('should catch all errors when errorType is not provided', async () => {
-      const handler = jest.fn()
+      const handler = vi.fn()
 
       class TestService {
         readonly logger = silentLogger
@@ -126,7 +128,7 @@ describe('Catch decorator', () => {
     })
 
     it('should catch generic Error when errorType is not provided', async () => {
-      const handler = jest.fn()
+      const handler = vi.fn()
 
       class TestService {
         readonly logger = silentLogger
@@ -150,7 +152,7 @@ describe('Catch decorator', () => {
 
   describe('handler arguments', () => {
     it('should pass the original method arguments to the handler', async () => {
-      const handler = jest.fn()
+      const handler = vi.fn()
 
       class TestService {
         readonly logger = silentLogger
@@ -224,8 +226,8 @@ describe('Catch decorator', () => {
 
   describe('stacking multiple decorators', () => {
     it('should handle different error types with stacked decorators', async () => {
-      const customHandler = jest.fn()
-      const anotherHandler = jest.fn()
+      const customHandler = vi.fn()
+      const anotherHandler = vi.fn()
 
       class TestService {
         readonly logger = silentLogger
@@ -253,8 +255,8 @@ describe('Catch decorator', () => {
     })
 
     it('should propagate to outer decorator when inner does not match', async () => {
-      const customHandler = jest.fn()
-      const anotherHandler = jest.fn()
+      const customHandler = vi.fn()
+      const anotherHandler = vi.fn()
 
       class TestService {
         readonly logger = silentLogger
@@ -278,8 +280,8 @@ describe('Catch decorator', () => {
     })
 
     it('should re-throw when no stacked decorator matches', async () => {
-      const customHandler = jest.fn()
-      const anotherHandler = jest.fn()
+      const customHandler = vi.fn()
+      const anotherHandler = vi.fn()
 
       class TestService {
         readonly logger = silentLogger
@@ -299,8 +301,8 @@ describe('Catch decorator', () => {
     })
 
     it('should use catch-all as the outermost handler with specific types inner', async () => {
-      const specificHandler = jest.fn()
-      const catchAllHandler = jest.fn()
+      const specificHandler = vi.fn()
+      const catchAllHandler = vi.fn()
 
       class TestService {
         readonly logger = silentLogger
@@ -326,7 +328,7 @@ describe('Catch decorator', () => {
 
   describe('successful method execution', () => {
     it('should not invoke handler when method succeeds', async () => {
-      const handler = jest.fn()
+      const handler = vi.fn()
 
       class TestService {
         readonly logger = silentLogger
@@ -345,7 +347,7 @@ describe('Catch decorator', () => {
     })
 
     it('should return the original value when method succeeds', async () => {
-      const handler = jest.fn()
+      const handler = vi.fn()
 
       class TestService {
         readonly logger = silentLogger
@@ -366,7 +368,7 @@ describe('Catch decorator', () => {
 
   describe('handler return value', () => {
     it('should return undefined when handler does not return a value', async () => {
-      const handler = jest.fn()
+      const handler = vi.fn()
 
       class TestService {
         readonly logger = silentLogger
@@ -386,7 +388,7 @@ describe('Catch decorator', () => {
 
   describe('with formatArgs option', () => {
     it('should use formatArgs to format the logged arguments when provided', async () => {
-      const handler = jest.fn()
+      const handler = vi.fn()
       const formatArgs = (userId: string, _count: number) => ({ userId })
 
       class TestService {
@@ -411,7 +413,7 @@ describe('Catch decorator', () => {
 
   describe('with predicate function (on: (error) => boolean)', () => {
     it('should catch errors when predicate returns true', async () => {
-      const handler = jest.fn()
+      const handler = vi.fn()
       const predicate = (error: unknown): boolean => error instanceof CustomError
 
       class TestService {
@@ -434,7 +436,7 @@ describe('Catch decorator', () => {
     })
 
     it('should re-throw errors when predicate returns false', async () => {
-      const handler = jest.fn()
+      const handler = vi.fn()
       const predicate = (error: unknown): boolean => error instanceof CustomError
 
       class TestService {
@@ -453,7 +455,7 @@ describe('Catch decorator', () => {
     })
 
     it('should pass method arguments to handler with predicate', async () => {
-      const handler = jest.fn()
+      const handler = vi.fn()
       const predicate = (): boolean => true
 
       class TestService {
@@ -502,8 +504,8 @@ describe('Catch decorator', () => {
     })
 
     it('should work with stacked decorators mixing predicate and class-based on', async () => {
-      const predicateHandler = jest.fn()
-      const classHandler = jest.fn()
+      const predicateHandler = vi.fn()
+      const classHandler = vi.fn()
       const isCustomError = (error: unknown): boolean => error instanceof CustomError
 
       class TestService {
@@ -528,8 +530,8 @@ describe('Catch decorator', () => {
     })
 
     it('should propagate to outer decorator when predicate returns false', async () => {
-      const predicateHandler = jest.fn()
-      const catchAllHandler = jest.fn()
+      const predicateHandler = vi.fn()
+      const catchAllHandler = vi.fn()
       const isCustomError = (error: unknown): boolean => error instanceof CustomError
 
       class TestService {
@@ -554,7 +556,7 @@ describe('Catch decorator', () => {
     })
 
     it('should catch non-Error values when predicate matches them', async () => {
-      const handler = jest.fn()
+      const handler = vi.fn()
       const isStringError = (error: unknown): boolean => typeof error === 'string'
 
       class TestService {

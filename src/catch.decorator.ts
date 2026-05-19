@@ -1,7 +1,7 @@
 import type { OnErrorContext } from 'base-decorators'
-import type { LogArgsFormatter } from 'nestjs-log-decorator'
+import type { LogArgsFormatter } from './types'
 import { OnErrorHook } from 'base-decorators'
-import { createLogWrapper } from 'nestjs-log-decorator'
+import { createLogWrapper } from './LogWrapper'
 
 /**
  * Type for error class constructors that can be used with the Catch decorator.

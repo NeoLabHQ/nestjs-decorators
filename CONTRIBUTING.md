@@ -7,8 +7,8 @@ Thanks for your interest in contributing to this project! 🎉
 ### Quick Start
 
 ```bash
-git clone https://github.com/NeoLabHQ/nestjs-log-decorator.git
-cd nestjs-log-decorator
+git clone https://github.com/NeoLabHQ/nestjs-decorators.git
+cd nestjs-decorators
 npm install
 npm run dev
 # Will run build and test in watch mode

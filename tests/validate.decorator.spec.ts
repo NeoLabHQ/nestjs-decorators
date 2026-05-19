@@ -1,13 +1,15 @@
 import { IsNotEmpty, IsNumber, IsString, Min, ValidateNested } from 'class-validator'
 import { Type } from 'class-transformer'
 import { Logger } from '@nestjs/common'
-import { Validate, ValidateObject } from '@/error-handling/validate.decorator'
+import { vi, describe, it, expect } from 'vitest'
+
+import { Validate, ValidateObject } from '../src/validate.decorator'
 
 /** Silenced NestJS logger for test services that use validation decorators. */
 const silentLogger = new Logger('TestService')
-silentLogger.log = jest.fn()
-silentLogger.error = jest.fn()
-silentLogger.warn = jest.fn()
+silentLogger.log = vi.fn()
+silentLogger.error = vi.fn()
+silentLogger.warn = vi.fn()
 
 class ValidationTestError extends Error {
   override name = 'ValidationTestError'
@@ -19,7 +21,7 @@ describe('Validate decorator', () => {
       class TestService {
         readonly logger = silentLogger
 
-        @(Validate<object, [string]>({ validate: (_name) => {} }) as MethodDecorator)
+        @(Validate<[string]>({ validate: (_name) => {} }) as MethodDecorator)
         async greet(name: string): Promise<string> {
           return `Hello, ${name}`
         }
@@ -35,7 +37,7 @@ describe('Validate decorator', () => {
       class TestService {
         readonly logger = silentLogger
 
-        @(Validate<object, [string]>({
+        @(Validate<[string]>({
           validate: (name) => {
             if (!name) throw new ValidationTestError('Name is required')
           },
@@ -52,7 +54,7 @@ describe('Validate decorator', () => {
     })
 
     it('should not call the original method when validation fails', async () => {
-      const methodBody = jest.fn().mockResolvedValue('result')
+      const methodBody = vi.fn().mockResolvedValue('result')
 
       class TestService {
         readonly logger = silentLogger
@@ -79,7 +81,7 @@ describe('Validate decorator', () => {
       class TestService {
         readonly logger = silentLogger
 
-        @(Validate<object, [string]>({
+        @(Validate<[string]>({
           validate: async (_id) => {
             await Promise.resolve()
           },
@@ -99,7 +101,7 @@ describe('Validate decorator', () => {
       class TestService {
         readonly logger = silentLogger
 
-        @(Validate<object, [string]>({
+        @(Validate<[string]>({
           validate: async (_id) => {
             await Promise.resolve()
             throw new ValidationTestError('Async validation failed')
@@ -118,7 +120,7 @@ describe('Validate decorator', () => {
 
   describe('method arguments passing', () => {
     it('should pass all method arguments to the validate callback', async () => {
-      const validateFn = jest.fn()
+      const validateFn = vi.fn()
 
       class TestService {
         readonly logger = silentLogger
@@ -139,10 +141,10 @@ describe('Validate decorator', () => {
 
   describe('logging behavior', () => {
     it('should log error with message when validation fails and message is provided', async () => {
-      const errorSpy = jest.fn()
+      const errorSpy = vi.fn()
       const testLogger = new Logger('TestService')
       testLogger.error = errorSpy
-      testLogger.log = jest.fn()
+      testLogger.log = vi.fn()
 
       class TestService {
         readonly logger = testLogger
@@ -164,10 +166,10 @@ describe('Validate decorator', () => {
     })
 
     it('should not log when validation passes', async () => {
-      const errorSpy = jest.fn()
+      const errorSpy = vi.fn()
       const testLogger = new Logger('TestService')
       testLogger.error = errorSpy
-      testLogger.log = jest.fn()
+      testLogger.log = vi.fn()
 
       class TestService {
         readonly logger = testLogger
@@ -240,7 +242,7 @@ describe('Validate decorator', () => {
     })
 
     it('should stop at first failing validation and not call subsequent ones', async () => {
-      const methodBody = jest.fn().mockResolvedValue('result')
+      const methodBody = vi.fn().mockResolvedValue('result')
 
       class TestService {
         readonly logger = silentLogger
@@ -280,7 +282,7 @@ describe('ValidateObject decorator', () => {
       class TestService {
         readonly logger = silentLogger
 
-        @(ValidateObject<object, [TestInput]>({
+        @(ValidateObject<[TestInput]>({
           extract: (input) => input,
           handleErrors: () => {
             throw new ValidationTestError('should not be called')
@@ -302,14 +304,14 @@ describe('ValidateObject decorator', () => {
     })
 
     it('should call handleErrors when class-validator finds violations', async () => {
-      const handleErrors = jest.fn().mockImplementation(() => {
+      const handleErrors = vi.fn().mockImplementation(() => {
         throw new ValidationTestError('Validation failed')
       })
 
       class TestService {
         readonly logger = silentLogger
 
-        @(ValidateObject<object, [TestInput, string]>({
+        @(ValidateObject<[TestInput, string]>({
           extract: (input) => input,
           handleErrors,
         }) as MethodDecorator)
@@ -339,12 +341,12 @@ describe('ValidateObject decorator', () => {
     })
 
     it('should not call the original method when validation fails', async () => {
-      const methodBody = jest.fn().mockResolvedValue('result')
+      const methodBody = vi.fn().mockResolvedValue('result')
 
       class TestService {
         readonly logger = silentLogger
 
-        @(ValidateObject<object, [TestInput]>({
+        @(ValidateObject<[TestInput]>({
           extract: (input) => input,
           handleErrors: () => {
             throw new ValidationTestError('invalid')
@@ -377,7 +379,7 @@ describe('ValidateObject decorator', () => {
       class TestService {
         readonly logger = silentLogger
 
-        @(ValidateObject<object, [string, NestedData]>({
+        @(ValidateObject<[string, NestedData]>({
           extract: (_id, data) => data,
           handleErrors: () => {
             throw new ValidationTestError('nested invalid')
@@ -399,14 +401,14 @@ describe('ValidateObject decorator', () => {
 
   describe('handleErrors callback', () => {
     it('should receive the original method args tuple, validation errors, and formatted messages', async () => {
-      const handleErrors = jest.fn().mockImplementation(() => {
+      const handleErrors = vi.fn().mockImplementation(() => {
         throw new ValidationTestError('fail')
       })
 
       class TestService {
         readonly logger = silentLogger
 
-        @(ValidateObject<object, [TestInput, string]>({
+        @(ValidateObject<[TestInput, string]>({
           extract: (input) => input,
           handleErrors,
         }) as MethodDecorator)
@@ -440,14 +442,14 @@ describe('ValidateObject decorator', () => {
         title!: string
       }
 
-      const handleErrors = jest.fn().mockImplementation(() => {
+      const handleErrors = vi.fn().mockImplementation(() => {
         throw new ValidationTestError('fail')
       })
 
       class TestService {
         readonly logger = silentLogger
 
-        @(ValidateObject<object, [GroupedInput]>({
+        @(ValidateObject<[GroupedInput]>({
           extract: (input) => input,
           handleErrors,
           validatorOptions: { groups: ['create'] },
@@ -473,14 +475,14 @@ describe('ValidateObject decorator', () => {
         title!: string
       }
 
-      const handleErrors = jest.fn().mockImplementation(() => {
+      const handleErrors = vi.fn().mockImplementation(() => {
         throw new ValidationTestError('fail')
       })
 
       class TestService {
         readonly logger = silentLogger
 
-        @(ValidateObject<object, [GroupedInput]>({
+        @(ValidateObject<[GroupedInput]>({
           extract: (input) => input,
           handleErrors,
           validatorOptions: { groups: ['update'], forbidUnknownValues: false },
@@ -503,15 +505,15 @@ describe('ValidateObject decorator', () => {
 
   describe('logging behavior', () => {
     it('should log error with message when ValidateObject validation fails and message is provided', async () => {
-      const errorSpy = jest.fn()
+      const errorSpy = vi.fn()
       const testLogger = new Logger('TestService')
       testLogger.error = errorSpy
-      testLogger.log = jest.fn()
+      testLogger.log = vi.fn()
 
       class TestService {
         readonly logger = testLogger
 
-        @(ValidateObject<object, [TestInput]>({
+        @(ValidateObject<[TestInput]>({
           message: 'Applicant data validation failed',
           extract: (input) => input,
           handleErrors: () => {
@@ -539,7 +541,7 @@ describe('ValidateObject decorator', () => {
         readonly logger = silentLogger
         readonly prefix = 'Result'
 
-        @(ValidateObject<object, [TestInput]>({
+        @(ValidateObject<[TestInput]>({
           extract: (input) => input,
           handleErrors: () => {
             throw new ValidationTestError('fail')
@@ -568,7 +570,7 @@ describe('ValidateObject decorator', () => {
       class TestService {
         readonly logger = silentLogger
 
-        @(ValidateObject<object, [TestInput]>({
+        @(ValidateObject<[TestInput]>({
           extract: (input) => input,
           handleErrors: () => {
             throw specificError
@@ -596,7 +598,7 @@ describe('ValidateObject decorator', () => {
       class TestService {
         readonly logger = silentLogger
 
-        @(ValidateObject<object, [TestInput]>({
+        @(ValidateObject<[TestInput]>({
           extract: (input) => input,
           handleErrors: (_args, _errors, messages) => {
             capturedMessages = messages
@@ -643,7 +645,7 @@ describe('ValidateObject decorator', () => {
       class TestService {
         readonly logger = silentLogger
 
-        @(ValidateObject<object, [ParentInput]>({
+        @(ValidateObject<[ParentInput]>({
           extract: (input) => input,
           handleErrors: (_args, errors, messages) => {
             capturedErrors = errors
@@ -697,7 +699,7 @@ describe('stacking Validate and ValidateObject decorators', () => {
           callOrder.push('validate')
         },
       }) as MethodDecorator)
-      @(ValidateObject<object, [TestInput]>({
+      @(ValidateObject<[TestInput]>({
         extract: (input) => input,
         handleErrors: () => {
           callOrder.push('validateObject-fail')
