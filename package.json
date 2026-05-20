@@ -34,7 +34,7 @@
     "cz": "git add . && cz"
   },
   "dependencies": {
-    "base-decorators": "^0.1.4"
+    "base-decorators": "^0.2.0"
   },
   "devDependencies": {
     "@semantic-release/git": "^10.0.1",
