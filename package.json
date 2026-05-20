@@ -1,6 +1,6 @@
 {
   "name": "nestjs-decorators",
-  "version": "1.5.0",
+  "version": "1.6.0",
   "description": "TypeScript decorators for NestJS: logging, error handling, and validation",
   "author": "Vlad Goncharov <vlad.goncharov@neolab.com>",
   "license": "AGPL-3.0",
