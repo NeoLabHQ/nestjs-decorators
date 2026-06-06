@@ -8,7 +8,7 @@ export interface AxiosError extends Error {
     name: string;
     message: string;
     stack?: string;
-    isAxiosError: true;
+    isAxiosError: boolean; // should be allways true, but kept as boolean for compatibility with the real axios types
     config: AxiosRequestConfig;
     response: AxiosResponse;
     code?: string;
